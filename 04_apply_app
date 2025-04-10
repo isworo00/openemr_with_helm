@@ -1,0 +1,7 @@
+helm repo add bitnami https://charts.bitnami.com/bitnami && helm repo update
+
+helm install mysql bitnami/mariadb -f mysql/values.yaml
+
+helm install redis-release bitnami/redis -f redis/values.yaml
+
+helm install my-phpmyadmin bitnami/phpmyadmin -f phpmyadmin/values.yaml

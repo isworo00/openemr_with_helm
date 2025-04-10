@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: websitevolume
+spec:
+  storageClassName: longhorn  # implement longhorn
+  #annotations:
+  #  longhorn.io/replica-count: "2"
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi 

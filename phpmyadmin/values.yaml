@@ -1,0 +1,64 @@
+replicas: 1
+
+image:
+  registry: docker.io
+  #tag: 5.2.2-debian-12-r7
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 500m
+    memory: 2Gi
+
+containerPorts:
+  http: 8080     
+  https: 8443   
+
+db:
+  enableSsl: true
+  host: "mysql-mariadb-primary"
+  port: 3306
+  ssl:
+    #Unfortunately, this path is not read by helm
+    #clientCertificate: /etc/mysql/tls.crt
+    #clientKey: /etc/mysql/tls.key
+    #caCertificate: /etc/mysql/ca.pem
+    verify: true
+
+extraVolumeMounts:
+  - name: mysql-phpmyadmin-client-certs
+    mountPath: /etc/mysql
+    readOnly: true
+
+extraVolumes:
+  - name: mysql-phpmyadmin-client-certs
+    secret:
+      secretName: mysql-phpmyadmin-client-certs
+      items:
+        - key: ca.crt
+          path: ca.pem
+        - key: tls.crt
+          path: tls.crt
+        - key: tls.key
+          path: tls.key
+
+# We need to directly override this to use SSL.
+extraEnvVars:
+  - name: DATABASE_SSL_CA
+    value: /etc/mysql/ssl/ca.pem
+  - name: DATABASE_SSL_CERT
+    value: /etc/mysql/ssl/client-cert.pem
+  - name: DATABASE_SSL_KEY
+    value: /etc/mysql/ssl/client-key.pem
+
+service:
+  type: ClusterIP   
+  ports:
+    http: 80        
+    https: 443      
+
+ingress:
+  enabled: false

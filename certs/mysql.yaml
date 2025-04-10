@@ -1,0 +1,34 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mysql
+spec:
+  secretName: mysql-server-certs
+  duration: 87660h # 10y
+  renewBefore: 360h # 15d
+  isCA: false
+  privateKey:
+    size: 2048
+    algorithm: RSA
+    encoding: PKCS1
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  subject:
+    organizations:
+      - mysql
+  commonName: mysql
+  dnsNames:
+    - localhost
+    - 127.0.0.1
+    - mysql-mariadb
+    - mysql-mariadb-primary
+    - mysql-mariadb-primary.mysql.default.svc.cluster.local
+    - mysql-mariadb-headless.default.svc.cluster.local
+    - mysql-mariadb-secondary
+    - mysql-mariadb-secondary.default.svc.cluster.local
+  issuerRef:
+    name: ca-issuer
+    kind: Issuer
+    group: cert-manager.io
