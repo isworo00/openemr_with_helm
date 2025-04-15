@@ -22,10 +22,10 @@ db:
   host: "mysql-mariadb-primary"
   port: 3306
   ssl:
-    #Unfortunately, this path is not read by helm
-    #clientCertificate: /etc/mysql/tls.crt
-    #clientKey: /etc/mysql/tls.key
-    #caCertificate: /etc/mysql/ca.pem
+    Unfortunately, this path is not read by helm
+    clientCertificate: /etc/mysql/tls.crt
+    clientKey: /etc/mysql/tls.key
+    caCertificate: /etc/mysql/ca.pem
     verify: true
 
 extraVolumeMounts:
