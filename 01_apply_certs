@@ -12,5 +12,4 @@ kubectl apply \
     -f certs/mysql.yaml \
     -f certs/mysql-openemr-client.yaml \
     -f certs/phpmyadmin.yaml \
-    -f certs/mysql-phpmyadmin-client.yaml \
-	-f certs/longhorn.yaml
+    -f certs/mysql-phpmyadmin-client.yaml

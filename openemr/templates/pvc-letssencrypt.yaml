@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: letsencryptvolume
+spec:
+  storageClassName: {{ .Values.storage.letsencrypt.storageClass | quote }}
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.storage.letsencrypt.size }}

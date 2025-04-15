@@ -3,10 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: websitevolume
 spec:
-  storageClassName: longhorn  # implement longhorn
-  #annotations:
-  #  longhorn.io/replica-count: "2"
+  storageClassName: {{ .Values.storage.website.storageClass }}
   accessModes: [ReadWriteOnce]
   resources:
     requests:
-      storage: 10Gi 
+      storage: {{ .Values.storage.website.size }}

@@ -1,7 +1,1 @@
-kubectl apply \
-    -f openemr/letsencrypt.yaml \
-    -f openemr/ssl.yaml \
-    -f openemr/website.yaml \
-    -f openemr/secret.yaml \
-    -f openemr/deployment.yaml \
-    -f openemr/service.yaml
+helm install openemr /openemr

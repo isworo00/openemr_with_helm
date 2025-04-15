@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openemr
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      name: openemr
+  template:
+    metadata:
+      labels:
+        name: openemr
+    spec:
+      initContainers:
+        - name: init-mysql-wait
+          image: {{ .Values.initContainers.mysql.image }}
+          command: ['sh', '-c', "until nslookup {{ .Values.initContainers.mysql.waitHost }}; do echo waiting for mysql; sleep 2; done"]
+        - name: init-redis-wait
+          image: {{ .Values.initContainers.redis.image }}
+          command: ['sh', '-c', "until nslookup {{ .Values.initContainers.redis.waitHost }}; do echo waiting for redis; sleep 2; done"]
+      containers:
+        - name: openemr
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPorts.http }}
+            - containerPort: {{ .Values.containerPorts.https }}
+          env:
+            - name: MYSQL_HOST
+              value: "{{ .Values.env.MYSQL_HOST }}"
+            - name: MYSQL_USER
+              value: "{{ .Values.env.MYSQL_USER }}"
+            - name: OE_USER
+              value: "{{ .Values.env.OE_USER }}"
+            - name: OE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysqlPassSecret }}
+                  key: {{ .Values.secrets.adminPassKey }}
+            - name: MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysqlPassSecret }}
+                  key: {{ .Values.secrets.mysqlPassKey }}
+            - name: MYSQL_ROOT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.mysqlRootSecret }}
+                  key: {{ .Values.secrets.mysqlRootKey }}
+            - name: REDIS_SERVER
+              value: "{{ .Values.env.REDIS_SERVER }}"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.redisSecret }}
+                  key: {{ .Values.secrets.redisPassKey }}
+            - name: SWARM_MODE
+              value: "{{ .Values.env.SWARM_MODE }}"
+            - name: FORCE_DATABASE_X509_CONNECT
+              value: "{{ .Values.env.FORCE_DATABASE_X509_CONNECT }}"
+          volumeMounts:
+            - name: websitevolume
+              mountPath: {{ .Values.storage.website.mountPath }}
+            - name: sslvolume
+              mountPath: {{ .Values.storage.ssl.mountPath }}
+            - name: letsencryptvolume
+              mountPath: {{ .Values.storage.letsencrypt.mountPath }}
+            - name: mysql-openemr-client-certs
+              mountPath: {{ .Values.storage.mysqlCert.mountPath }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+      volumes:
+        - name: websitevolume
+          persistentVolumeClaim:
+            claimName: websitevolume
+        - name: sslvolume
+          persistentVolumeClaim:
+            claimName: sslvolume
+        - name: letsencryptvolume
+          persistentVolumeClaim:
+            claimName: letsencryptvolume
+        - name: mysql-openemr-client-certs
+          secret:
+            secretName: {{ .Values.certSecret.name }}
+            items:
+              - key: {{ .Values.certSecret.keys.ca }}
+                path: {{ .Values.certSecret.paths.ca }}
+              - key: {{ .Values.certSecret.keys.cert }}
+                path: {{ .Values.certSecret.paths.cert }}
+              - key: {{ .Values.certSecret.keys.key }}
+                path: {{ .Values.certSecret.paths.key }}

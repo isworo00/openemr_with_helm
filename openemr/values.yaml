@@ -1,0 +1,72 @@
+replicaCount: 1
+
+image:
+  repository: openemr/openemr
+  tag: 7.0.2
+  pullPolicy: IfNotPresent
+
+containerPorts:
+  http: 80
+  https: 443
+
+initContainers:
+  mysql:
+    image: busybox:1.28
+    waitHost: mysql-mariadb-primary
+  redis:
+    image: busybox:1.28
+    waitHost: redis-release.default.svc.cluster.local
+
+service:
+  type: LoadBalancer
+  httpPort: 8080
+  httpsPort: 8090
+
+storage:
+  website:
+    size: 10Gi
+    storageClass: longhorn
+    mountPath: /var/www/localhost/htdocs/openemr/sites
+  ssl:
+    size: 1Gi
+    storageClass: longhorn
+    mountPath: /etc/ssl
+  letsencrypt:
+    size: 1Gi
+    storageClass: longhorn
+    mountPath: /etc/letsencrypt
+  mysqlCert:
+    mountPath: /root/certs/mysql/server
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+env:
+  MYSQL_HOST: mysql-mariadb-primary
+  MYSQL_USER: openemr
+  OE_USER: admin
+  SWARM_MODE: "yes"
+  FORCE_DATABASE_X509_CONNECT: "1"
+  REDIS_SERVER: redis-release.default.svc.cluster.local
+
+secrets:
+  mysqlPassSecret: openemr-credentials
+  mysqlRootSecret: mysql-secret
+  redisSecret: redis-secret
+  mysqlPassKey: mysql-pass
+  mysqlRootKey: mariadb-root-password
+  adminPassKey: admin-pass
+  redisPassKey: redis-password
+
+certSecret:
+  name: mysql-openemr-client-certs
+  keys:
+    ca: ca.crt
+    cert: tls.crt
+    key: tls.key
+  paths:
+    ca: mysql-ca
+    cert: mysql-cert
+    key: mysql-key
